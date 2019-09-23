@@ -1,0 +1,75 @@
+on round_truncate(this_number, decimal_places)
+	if decimal_places is 0 then
+		set this_number to this_number + 0.5
+		return number_to_text(this_number div 1)
+	end if
+	
+	set the rounding_value to "5"
+	repeat decimal_places times
+		set the rounding_value to "0" & the rounding_value
+	end repeat
+	set the rounding_value to ("." & the rounding_value) as number
+	
+	set this_number to this_number + rounding_value
+	
+	set the mod_value to "1"
+	repeat decimal_places - 1 times
+		set the mod_value to "0" & the mod_value
+	end repeat
+	set the mod_value to ("." & the mod_value) as number
+	
+	set second_part to (this_number mod 1) div the mod_value
+	if the length of (the second_part as text) is less than the decimal_places then
+		repeat decimal_places - (the length of (the second_part as text)) times
+			set second_part to ("0" & second_part) as string
+		end repeat
+	end if
+	
+	set first_part to this_number div 1
+	set first_part to number_to_string(first_part)
+	set this_number to (first_part & "." & second_part)
+	
+	return this_number
+end round_truncate
+
+on number_to_string(this_number)
+	set this_number to this_number as string
+	if this_number contains "E+" then
+		set x to the offset of "." in this_number
+		set y to the offset of "+" in this_number
+		set z to the offset of "E" in this_number
+		set the decimal_adjust to characters (y - (length of this_number)) thru ¬
+			-1 of this_number as string as number
+		if x is not 0 then
+			set the first_part to characters 1 thru (x - 1) of this_number as string
+		else
+			set the first_part to ""
+		end if
+		set the second_part to characters (x + 1) thru (z - 1) of this_number as string
+		set the converted_number to the first_part
+		repeat with i from 1 to the decimal_adjust
+			try
+				set the converted_number to ¬
+					the converted_number & character i of the second_part
+			on error
+				set the converted_number to the converted_number & "0"
+			end try
+		end repeat
+		return the converted_number
+	else
+		return this_number
+	end if
+end number_to_string
+
+set usdprice to text returned of (display dialog "Convert USD to foreign currency" default answer "" buttons {"Cancel", "Convert"} default button "Convert")
+set audconversion to usdprice / 0.6273
+set audconversion to round_truncate(audconversion, 2)
+set euroconversion to usdprice / 0.9106
+set euroconversion to round_truncate(euroconversion, 2)
+
+set ukconversion to usdprice / 1.0362
+set ukconversion to round_truncate(ukconversion, 2)
+
+display dialog "AUD is  " & audconversion & " price 
+Euro " & euroconversion & " Price 
+UK " & ukconversion & "price" buttons {"Ok"} default button "Ok"
